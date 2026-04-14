@@ -2,16 +2,16 @@
 
 ## 概要
 
-この文書は、BcPasskeyAuth と BcSocialAuth が必要とするテーブルのマイグレーション仕様を定義します。
+この文書は、BcAuthPasskey と BcAuthSocial が必要とするテーブルのマイグレーション仕様を定義します。
 
-- `passkey_credentials` — BcPasskeyAuth が管理する WebAuthn 資格情報テーブル
-- `auth_provider_links` — BcSocialAuth が管理する外部プロバイダ連携テーブル
+- `passkey_credentials` — BcAuthPasskey が管理する WebAuthn 資格情報テーブル
+- `auth_provider_links` — BcAuthSocial が管理する外部プロバイダ連携テーブル
 
 各プラグインの `config/Migrations/` 配下に BcMigration を継承したクラスとして実装します。
 
 ---
 
-## passkey_credentials（BcPasskeyAuth）
+## passkey_credentials（BcAuthPasskey）
 
 ### テーブル概要
 
@@ -144,7 +144,7 @@ class CreatePasskeyCredentials extends BcMigration
 
 ---
 
-## auth_provider_links（BcSocialAuth）
+## auth_provider_links（BcAuthSocial）
 
 ### テーブル概要
 
@@ -298,8 +298,8 @@ class CreateAuthProviderLinks extends BcMigration
 
 | テーブル | プラグイン | 推奨ファイル名（例） |
 | --- | --- | --- |
-| `passkey_credentials` | BcPasskeyAuth | `plugins/BcPasskeyAuth/config/Migrations/20260409000001_CreatePasskeyCredentials.php` |
-| `auth_provider_links` | BcSocialAuth | `plugins/BcSocialAuth/config/Migrations/20260409000001_CreateAuthProviderLinks.php` |
+| `passkey_credentials` | BcAuthPasskey | `plugins/BcAuthPasskey/config/Migrations/20260409000001_CreatePasskeyCredentials.php` |
+| `auth_provider_links` | BcAuthSocial | `plugins/BcAuthSocial/config/Migrations/20260409000001_CreateAuthProviderLinks.php` |
 
 ファイル名先頭のタイムスタンプは実装時点の日時に合わせてください。
 
@@ -309,5 +309,5 @@ class CreateAuthProviderLinks extends BcMigration
 
 - インターフェース仕様: auth-login-redirect-service-spec.md
 - 共通責務の全体方針: auth-common-architecture.md
-- BcPasskeyAuth の詳細設計: ../../BcPasskeyAuth/docs/passkey-auth-design.md
-- BcSocialAuth の詳細設計: ../../BcSocialAuth/docs/social-auth-design.md
+- BcAuthPasskey の詳細設計: ../../BcAuthPasskey/docs/passkey-auth-design.md
+- BcAuthSocial の詳細設計: ../../BcAuthSocial/docs/social-auth-design.md

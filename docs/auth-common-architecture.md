@@ -4,7 +4,7 @@
 
 BcAuthCommon は、baserCMS 5 に複数の認証方式を追加する際の共通責務を扱う共通基盤プラグインです。
 
-現在は `AuthLoginService` と `AuthRedirectService` を実装済みで、まずは BcPasskeyAuth と BcSocialAuth のあいだで重複しやすいログイン完了処理を担います。
+現在は `AuthLoginService` と `AuthRedirectService` を実装済みで、まずは BcAuthPasskey と BcAuthSocial のあいだで重複しやすいログイン完了処理を担います。
 
 ## 背景
 
@@ -21,7 +21,7 @@ baserCMS 5 で追加したい認証方式は、少なくとも次の 3 系統が
 ## 目的
 
 - 複数認証プラグインが同時に導入されても破綻しない構成を整理する
-- BcPasskeyAuth と BcSocialAuth の共通責務を定義する
+- BcAuthPasskey と BcAuthSocial の共通責務を定義する
 - 今すぐ共通プラグインを作らなくても、後で抽出しやすい境界を明確にする
 - 旧 BcGoogleLogin のような単独プラグインも共通基盤へ寄せやすい形にする
 
@@ -239,7 +239,7 @@ AuthEntryService は、各プラグインが自由な HTML を返すのではな
 
 BcAuthCommon では `AuthLoginService` と `AuthRedirectService` を実装済みです。次のいずれかが成立した時点で、残る共通責務の追加実装を検討します。
 
-- BcPasskeyAuth と BcSocialAuth の両方で redirect 正規化コードが重複した
+- BcAuthPasskey と BcAuthSocial の両方で redirect 正規化コードが重複した
 - 二段階認証への受け渡しコードが重複した
 - ログイン画面入口の配列定義と描画コードが重複した
 - 監査ログ形式を 2 プラグイン以上で共有する必要が生じた
@@ -273,7 +273,7 @@ BcAuthCommon では `AuthLoginService` と `AuthRedirectService` を実装済み
 
 - Admin と Front のログインテンプレートを override する
 - そのテンプレート内で 認証入口エリア を 1 つ定義する
-- BcPasskeyAuth と BcSocialAuth は、そのエリアに並ぶ要素を描画する
+- BcAuthPasskey と BcAuthSocial は、そのエリアに並ぶ要素を描画する
 
 理由:
 
@@ -303,8 +303,8 @@ BcAuthCommon では `AuthLoginService` と `AuthRedirectService` を実装済み
 
 現時点の推奨順序は次の通りです。
 
-1. BcPasskeyAuth を独立して最小実装する
-2. BcSocialAuth を Google 先行、X 後追いで設計、実装する
+1. BcAuthPasskey を独立して最小実装する
+2. BcAuthSocial を Google 先行、X 後追いで設計、実装する
 3. 両者で重複した部分だけを見て BcAuthCommon を実コードへ昇格させる
 
 つまり、最初から BcAuthCommon を完成品として作るのではなく、先に責務だけを固定し、重複が見えた時点でコード共通化するのが現実的です。
@@ -319,4 +319,4 @@ BcAuthCommon では `AuthLoginService` と `AuthRedirectService` を実装済み
 
 BcAuthCommon は、認証方式ごとの差分を消すための抽象化ではなく、ログイン成功後の接続、画面入口、監査、リダイレクトのようなアプリケーション共通責務だけを切り出すための整理です。
 
-この方針により、BcPasskeyAuth と BcSocialAuth、さらに将来の BcGoogleLogin5 相当の実装も、同時利用できる方向で進めやすくなります。
+この方針により、BcAuthPasskey と BcAuthSocial、さらに将来の BcGoogleLogin5 相当の実装も、同時利用できる方向で進めやすくなります。

@@ -2,7 +2,7 @@
 
 BcAuthCommon は、baserCMS 5 向けの複数認証プラグインで共有する共通処理を担うプラグインです。
 
-現在は `BcPasskeyAuth` と `BcSocialAuth` の共通ログイン完了処理とリダイレクト正規化を中心に実装しています。
+現在は `BcAuthPasskey` と `BcAuthSocial` の共通ログイン完了処理とリダイレクト正規化を中心に実装しています。
 
 ## 実装済み
 

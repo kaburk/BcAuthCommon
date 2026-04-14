@@ -8,7 +8,7 @@
 - `AuthRedirectService` — ログイン後のリダイレクト先確定責務
 
 現時点では BcAuthCommon は概念基盤であり、このインターフェースは実コード化タイミングを見据えた事前設計です。  
-BcPasskeyAuth と BcSocialAuth は、それぞれこのインターフェースへ準拠する形で実装します。
+BcAuthPasskey と BcAuthSocial は、それぞれこのインターフェースへ準拠する形で実装します。
 
 ---
 
@@ -138,7 +138,7 @@ redirect 値が AuthRedirectService::resolve() に渡るまでの経路は 3 種
 
 ## 利用例（疑似コード）
 
-### BcPasskeyAuth の assertion 検証後
+### BcAuthPasskey の assertion 検証後
 
 ```php
 // PasskeysController（Admin）
@@ -148,7 +148,7 @@ $loginResult = $this->AuthLoginService->login([
     'user_id'     => $userId,
     'prefix'      => 'Admin',
     'auth_source' => 'passkey',
-    'redirect'    => $this->request->getSession()->read('BcPasskeyAuth.loginChallenge.Admin.redirect'),
+    'redirect'    => $this->request->getSession()->read('BcAuthPasskey.loginChallenge.Admin.redirect'),
     'saved'       => false,
 ], $this->request, $this->response);
 
@@ -159,7 +159,7 @@ if ($loginResult->status === 'completed') {
 return $this->redirect($loginResult->redirect_url);
 ```
 
-### BcSocialAuth の callback 後
+### BcAuthSocial の callback 後
 
 ```php
 // AuthController（Admin）
@@ -182,5 +182,5 @@ return $this->redirect($loginResult->redirect_url);
 ## 関連文書
 
 - 共通責務の全体方針: auth-common-architecture.md
-- BcPasskeyAuth の詳細設計: ../../BcPasskeyAuth/docs/passkey-auth-design.md
-- BcSocialAuth の詳細設計: ../../BcSocialAuth/docs/social-auth-design.md
+- BcAuthPasskey の詳細設計: ../../BcAuthPasskey/docs/passkey-auth-design.md
+- BcAuthSocial の詳細設計: ../../BcAuthSocial/docs/social-auth-design.md

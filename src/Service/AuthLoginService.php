@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace BcAuthCommon\Service;
 
+use BcAuthCommon\Service\AuthLoginLogService;
 use BaserCore\Event\BcEventDispatcher;
 use BaserCore\Service\SiteConfigsService;
 use BaserCore\Service\TwoFactorAuthenticationsService;
@@ -94,6 +95,14 @@ class AuthLoginService implements AuthLoginServiceInterface
         if ($request->is('https') && $saved) {
             $response = $this->usersService->setCookieAutoLoginKey($response, $user->id);
         }
+
+        AuthLoginLogService::write(
+            event: 'login_success',
+            userId: $user->id,
+            prefix: $prefix,
+            authSource: $authSource,
+            request: $request,
+        );
 
         return new AuthLoginResult('completed', $redirectUrl, $request, $response);
     }
