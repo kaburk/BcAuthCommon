@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace BcAuthCommon\Service;
 
 use BcAuthCommon\Service\AuthLoginLogService;
+use BcAuthGuard\Service\BcAuthGuardService;
 use BaserCore\Event\BcEventDispatcher;
 use BaserCore\Service\SiteConfigsService;
 use BaserCore\Service\TwoFactorAuthenticationsService;
@@ -33,6 +34,10 @@ class AuthLoginService implements AuthLoginServiceInterface
         $prefix = (string)($params['prefix'] ?? 'Admin');
         $saved = (bool)($params['saved'] ?? false);
         $authSource = (string)($params['auth_source'] ?? 'unknown');
+        $clientIp = (string)($params['client_ip'] ?? '');
+        if (!filter_var($clientIp, FILTER_VALIDATE_IP)) {
+            $clientIp = '';
+        }
 
         if (!$userId) {
             throw new RuntimeException('user_id が必要です。');
@@ -42,6 +47,8 @@ class AuthLoginService implements AuthLoginServiceInterface
         if (!$user) {
             throw new RuntimeException('ユーザーを取得できません。');
         }
+
+        $this->assertAllowedLogin($prefix, (string) $user->email, $request, $authSource, $clientIp);
 
         $redirectUrl = $this->redirectService->resolve($params['redirect'] ?? null, $prefix);
 
@@ -73,8 +80,12 @@ class AuthLoginService implements AuthLoginServiceInterface
             return new AuthLoginResult('two_factor_required', $loginCodeUrl, $request, $response);
         }
 
-        $request = $request->withParam('prefix', $prefix);
-        $result = $this->usersService->login($request, $response, $user->id);
+        $requestForLogin = $request->withParam('prefix', $prefix);
+        $requestForLog = $requestForLogin;
+        if ($clientIp !== '') {
+            $requestForLog = $requestForLog->withEnv('REMOTE_ADDR', $clientIp);
+        }
+        $result = $this->usersService->login($requestForLogin, $response, $user->id);
         if (!$result) {
             throw new RuntimeException('ログイン状態の確立に失敗しました。');
         }
@@ -85,6 +96,8 @@ class AuthLoginService implements AuthLoginServiceInterface
         BcEventDispatcher::dispatch('afterLogin', $this->usersService, [
             'user' => $user,
             'loginRedirect' => $redirectUrl,
+            'authSource' => $authSource,
+            'clientIp' => ($clientIp !== '' ? $clientIp : null),
         ], [
             'layer' => 'Controller',
             'plugin' => 'BaserCore',
@@ -96,12 +109,19 @@ class AuthLoginService implements AuthLoginServiceInterface
             $response = $this->usersService->setCookieAutoLoginKey($response, $user->id);
         }
 
-        AuthLoginLogService::write(
+        $request->getSession()->write('BcAuthCommon.authSource.' . $prefix, $authSource);
+
+        AuthLoginLogService::writeWithContext(
             event: 'login_success',
             userId: $user->id,
             prefix: $prefix,
             authSource: $authSource,
-            request: $request,
+            username: (string) $user->email,
+            request: $requestForLog,
+            context: [
+                'request_path' => (string) $requestForLog->getRequestTarget(),
+                'referer' => (string) $requestForLog->getHeaderLine('Referer'),
+            ],
         );
 
         return new AuthLoginResult('completed', $redirectUrl, $request, $response);
@@ -113,5 +133,32 @@ class AuthLoginService implements AuthLoginServiceInterface
             return false;
         }
         return (bool)$this->siteConfigsService->getValue('use_two_factor_authentication');
+    }
+
+    private function assertAllowedLogin(string $prefix, string $username, ServerRequest $request, string $authSource, string $clientIp = ''): void
+    {
+        if ($prefix !== 'Admin' || !class_exists(BcAuthGuardService::class)) {
+            return;
+        }
+
+        $guardService = new BcAuthGuardService();
+        $ipAddress = $clientIp !== '' ? $clientIp : (string) AuthLoginLogService::getRequestIp($request);
+        if (!$guardService->isBlockedIp($ipAddress)) {
+            return;
+        }
+
+        $guardService->recordBlockedIpDenied(
+            'Admin',
+            mb_strtolower(trim($username)),
+            $ipAddress,
+            $request,
+            [
+                'auth_source' => $authSource,
+                'request_path' => (string) $request->getRequestTarget(),
+                'referer' => (string) $request->getHeaderLine('Referer'),
+            ]
+        );
+
+        throw new RuntimeException(__d('baser_core', '申し訳ありませんが、ログインを制限しています。'), 403);
     }
 }

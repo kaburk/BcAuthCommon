@@ -223,15 +223,20 @@ AuthEntryService は、各プラグインが自由な HTML を返すのではな
 
 | 項目 | 用途 |
 | --- | --- |
-| auth_type | `password`, `passkey`, `social` |
-| provider | `google`, `x` など。パスキーは `passkey` |
-| event_type | `success`, `failure`, `cancel`, `link`, `unlink` |
+| event | `login_success`, `login_failure`, `logout`, `link_cancel`, `lockout_started`, `lockout_denied`, `blocked_ip_denied` など |
+| auth_source | `password`, `passkey`, `social:google`, `social:x` など |
 | user_id | 特定できた baserCMS ユーザー |
+| username | ログインID（通常はメールアドレス） |
 | prefix | `Admin`, `Front`, `Api/Admin` |
-| ip | 接続元 IP |
+| ip_address | 接続元 IP |
 | user_agent | 利用端末識別 |
-| error_code | challenge 不一致などの内部分類 |
-| occurred | 発生日時 |
+| referer | リファラー |
+| request_path | リクエストパス |
+| detail | 補足情報（JSON。payload など） |
+| created | 発生日時 |
+
+`username` / `referer` / `request_path` は検索性確保のため正規カラムとして保持します。
+`detail` は補足情報用のフィールドとして扱います。
 
 最初から管理画面を作る必要はありませんが、記録項目だけ先に統一しておくと、各プラグインが独自ログ形式を持たずに済みます。
 
@@ -312,7 +317,6 @@ BcAuthCommon では `AuthLoginService` と `AuthRedirectService` を実装済み
 ## 関連文書
 
 - サービス I/F 仕様（メソッド定義・利用例）: auth-login-redirect-service-spec.md
-- マイグレーション仕様（テーブル定義・実装コード）: migration-spec.md
 - 横断サマリ: auth-plugin-spec-summary.md
 
 ## まとめ
