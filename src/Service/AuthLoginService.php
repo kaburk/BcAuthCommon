@@ -111,18 +111,20 @@ class AuthLoginService implements AuthLoginServiceInterface
 
         $request->getSession()->write('BcAuthCommon.authSource.' . $prefix, $authSource);
 
-        AuthLoginLogService::writeWithContext(
-            event: 'login_success',
-            userId: $user->id,
-            prefix: $prefix,
-            authSource: $authSource,
-            username: (string) $user->email,
-            request: $requestForLog,
-            context: [
-                'request_path' => (string) $requestForLog->getRequestTarget(),
-                'referer' => (string) $requestForLog->getHeaderLine('Referer'),
-            ],
-        );
+        if (!($prefix === 'Admin' && $authSource === 'password')) {
+            AuthLoginLogService::writeWithContext(
+                event: 'login_success',
+                userId: $user->id,
+                prefix: $prefix,
+                authSource: $authSource,
+                username: (string) $user->email,
+                request: $requestForLog,
+                context: [
+                    'request_path' => (string) $requestForLog->getRequestTarget(),
+                    'referer' => (string) $requestForLog->getHeaderLine('Referer'),
+                ],
+            );
+        }
 
         return new AuthLoginResult('completed', $redirectUrl, $request, $response);
     }

@@ -22,6 +22,15 @@ class BcAuthCommonControllerEventListener extends BcControllerEventListener
         if (!$request || (string) $request->getParam('prefix') !== 'Admin') {
             return;
         }
+        if ((bool) $request->getAttribute('BcAuthCommon.afterLoginHandled', false)) {
+            return;
+        }
+
+        $request = $request->withAttribute('BcAuthCommon.afterLoginHandled', true);
+        $subject = $event->getSubject();
+        if ($subject && method_exists($subject, 'setRequest')) {
+            $subject->setRequest($request);
+        }
 
         $user = $event->getData('user');
         if (!$user) {
