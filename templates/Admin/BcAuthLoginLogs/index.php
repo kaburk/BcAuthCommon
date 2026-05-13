@@ -35,7 +35,12 @@ $this->BcAdmin->setSearch('BcAuthCommon.bc_auth_login_logs_index');
     <thead class="bca-table-listup__thead">
     <tr>
         <th class="bca-table-listup__thead-th bca-table-listup__thead-th--select">
-            <?php echo $this->BcAdminForm->control('checkall', ['type' => 'checkbox', 'label' => ' ']) ?>
+            <?php echo $this->BcAdminForm->control('checkall', [
+                'type' => 'checkbox',
+                'label' => ' ',
+                'id' => 'checkall',
+                'title' => __d('baser_core', '一括選択'),
+            ]) ?>
         </th>
         <th class="bca-table-listup__thead-th"><?php echo $this->Paginator->sort('id', __d('baser_core', 'No')) ?></th>
         <th class="bca-table-listup__thead-th"><?php echo $this->Paginator->sort('event', __d('baser_core', '状態')) ?></th>
@@ -102,3 +107,26 @@ $this->BcAdmin->setSearch('BcAuthCommon.bc_auth_login_logs_index');
 
 <?php echo $this->BcAdminForm->end() ?>
 <?php echo $this->fetch('postLink') ?>
+
+<script>
+$(function () {
+    const $checkAll = $('#checkall');
+    const $targets = $('#ListTable .batch-targets');
+
+    if (!$checkAll.length || !$targets.length) {
+        return;
+    }
+
+    $checkAll.on('change', function () {
+        const checked = $(this).prop('checked');
+        $targets.prop('checked', checked);
+    });
+
+    $targets.on('change', function () {
+        const total = $targets.length;
+        const checkedCount = $targets.filter(':checked').length;
+        $checkAll.prop('checked', total > 0 && checkedCount === total);
+        $checkAll.prop('indeterminate', checkedCount > 0 && checkedCount < total);
+    });
+});
+</script>
