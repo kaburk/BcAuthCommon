@@ -1,65 +1,65 @@
 # BcAuthCommon plugin for baserCMS
 
-BcAuthCommon は、baserCMS 5 向けの複数認証プラグインで共有する共通処理を担うプラグインです。
+BcAuthCommon は、baserCMS 5 の認証系プラグインで共通利用する機能を集約したプラグインです。
 
-現状は、`BcAuthPasskey` と `BcAuthSocial` の共通ログイン完了処理・リダイレクト正規化・監査ログ・認証入口管理を実装しています。
+主に次の責務を担います。
 
-また、ログイン / ログアウト時の「最近の動き（Dblog）」記録は BcAuthCommon 側のイベントリスナーで処理します。
+- ログイン完了処理の共通化
+- リダイレクト先の安全な正規化
+- 監査ログの記録
+- ログイン導線（認証入口）の管理
+- ログイン / ログアウト時の最近の動き（Dblog）記録
 
-今後もBcAuthCommonを使ったログイン周りの別のプラグインを別途作成予定です。
+現在は BcAuthPasskey と BcAuthSocial から利用しています。今後追加する認証プラグインでも、同じ共通基盤として利用する想定です。
 
-## 実装済み機能
+## 対象と目的
 
-| ファイル | 概要 |
-|---|---|
-| `src/BcAuthCommonPlugin.php` | プラグインクラス |
-| `src/Model/Entity/BcAuthLoginLog.php` | 監査ログ エンティティ |
-| `src/Model/Table/BcAuthLoginLogsTable.php` | 監査ログ テーブル（`bc_auth_login_logs`） |
-| `src/Service/AuthLoginService.php` | 認証済み `user_id` から baserCMS ログイン完了処理を実行。二段階認証要否を判定し `completed` / `two_factor_required` を返す |
-| `src/Service/AuthLoginServiceInterface.php` | インターフェース |
-| `src/Service/AuthLoginResult.php` | `status` / `redirect_url` / `request` / `response` を持つ結果 DTO |
-| `src/Service/AuthRedirectService.php` | redirect の安全性確認（外部 URL 排除）と prefix ごとの既定遷移先決定 |
-| `src/Service/AuthRedirectServiceInterface.php` | インターフェース |
-| `src/Service/AuthLoginLogService.php` | ログイン成功・失敗・キャンセルの監査ログ書き込み（`bc_auth_login_logs`） |
-| `src/Event/BcAuthCommonControllerEventListener.php` | ログイン / ログアウトの監査ログと最近の動き記録 |
-| `src/Service/AuthEntryService.php` | 複数認証プラグイン同時有効時のログインボタン順序制御 |
-| `config/Migrations/20260415000001_CreateBcAuthLoginLogs.php` | マイグレーション |
+- 対象: baserCMS 5 系の認証拡張プラグイン
+- 目的: 認証方式ごとの差分を小さくし、監査・運用・保守を統一する
 
-## DB テーブル
+## できること
 
-| テーブル | 用途 |
-|---|---|
-| `bc_auth_login_logs` | 認証成功・失敗・キャンセルの監査ログ |
+- 認証済み user_id から baserCMS ログイン状態を確立
+- 二段階認証の要否判定と遷移先制御
+- 外部 URL を排除した安全な redirect 決定
+- ログイン成功 / 失敗 / ログアウト等の監査ログ記録
+- ログイン画面の認証ボタン（入口）表示順制御
 
-主なカラム:
-
-- `user_id`
-- `username`
-- `prefix`
-- `auth_source`
-- `event`
-- `ip_address`
-- `user_agent`
-- `referer`
-- `request_path`
-- `detail`（補足 JSON）
-- `created`
-
-管理画面の検索条件:
-
-- 状態
-- ログインID
-- IPアドレス
-- 認証種別
-- リファラー
-- 期間（開始 / 終了）
-
-## ドキュメント
+## 詳細ドキュメント
 
 - 全体整理: [docs/auth-plugin-spec-summary.md](docs/auth-plugin-spec-summary.md)
-- 共通責務: [docs/auth-common-architecture.md](docs/auth-common-architecture.md)
+- 共通責務と構成: [docs/auth-common-architecture.md](docs/auth-common-architecture.md)
 - サービス I/F 仕様: [docs/auth-login-redirect-service-spec.md](docs/auth-login-redirect-service-spec.md)
+
+## よく参照する実装ファイル（入口）
+
+- src/Service/AuthLoginService.php
+- src/Service/AuthRedirectService.php
+- src/Service/AuthLoginLogService.php
+- src/Event/BcAuthCommonControllerEventListener.php
+- src/Service/AuthEntryService.php
+- config/Migrations/20260415000001_CreateBcAuthLoginLogs.php
+
+## 監査ログについて
+
+監査ログの event 種別、カラム定義、検索条件、運用方針は次を参照してください。
+
+- [docs/auth-common-architecture.md](docs/auth-common-architecture.md)
+- [docs/auth-plugin-spec-summary.md](docs/auth-plugin-spec-summary.md)
+
+## ログインフローについて
+
+ログイン完了から二段階認証分岐、リダイレクト確定までの詳細シーケンスは次を参照してください。
+
+- [docs/auth-login-redirect-service-spec.md](docs/auth-login-redirect-service-spec.md)
+
+## 開発メモ
+
+- 認証プラグイン側は認証方式固有の検証に集中し、共通処理は BcAuthCommon に寄せる
+- auth_source は password / passkey / social:provider のように識別可能な値を使う
 
 ## ライセンス
 
-MIT License. 詳細は [LICENSE.txt](LICENSE.txt) を参照してください。
+MIT License.
+
+詳細は [LICENSE.md](LICENSE.md) を参照してください。
